@@ -6,7 +6,9 @@ const client = new MongoClient(env.MONGODB_URI);
 let database: Db | undefined;
 
 export async function connectDatabase(): Promise<Db> {
-  if (database) return database;
+  if (database) {
+    return database;
+  }
   await client.connect();
   database = client.db(env.MONGODB_DATABASE);
   await database.command({ ping: 1 });
@@ -14,12 +16,16 @@ export async function connectDatabase(): Promise<Db> {
 }
 
 export function getDatabase(): Db {
-  if (!database) throw new Error("Database has not been connected");
+  if (!database) {
+    throw new Error("Database has not been connected");
+  }
   return database;
 }
 
 export async function isDatabaseHealthy(): Promise<boolean> {
-  if (!database) return false;
+  if (!database) {
+    return false;
+  }
   try {
     await database.command({ ping: 1 });
     return true;

@@ -4,9 +4,10 @@ import { admin as betterAuthAdmin, bearer, jwt } from "better-auth/plugins";
 import { env } from "../config/env.js";
 import { getDatabase, mongoClient } from "../config/database.js";
 
-const socialProviders = env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
-  ? { google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET } }
-  : undefined;
+const socialProviders =
+  env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+    ? { google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET } }
+    : undefined;
 
 export const auth = betterAuth({
   appName: "MediCare Connect",
