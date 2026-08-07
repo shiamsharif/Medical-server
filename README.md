@@ -98,38 +98,38 @@ Set `CLIENT_URL`, `SERVER_URL`, and `BETTER_AUTH_URL` to their public HTTPS orig
 
 ## API endpoints
 
-| Method | URL | Access | Purpose |
-|---|---|---|---|
-| ALL | `/api/auth/*` | Public/session | Better Auth registration, login, Google, logout, session, token and JWKS |
-| POST | `/api/users/onboarding` | Auth session | Assign trusted patient/doctor application role |
-| GET/PATCH | `/api/users/me` | Active user | Read/update own profile |
-| GET | `/api/doctors` | Public | Search verified doctors with sorting/pagination |
-| GET | `/api/doctors/:id` | Public | Safe profile and public reviews |
-| GET/PATCH | `/api/doctors/me/profile` | Doctor | Manage own profile |
-| GET/POST/PATCH/DELETE | `/api/schedules/...` | Doctor | Manage own schedules |
-| GET | `/api/schedules/doctor/:doctorId/availability?date=YYYY-MM-DD` | Public | Server-authoritative open slots |
-| POST | `/api/appointments` | Patient | Reserve slot and create PaymentIntent |
-| GET | `/api/appointments/mine` | Patient | List own appointments |
-| PATCH | `/api/appointments/:id/reschedule` | Patient owner | Reschedule an allowed appointment |
-| PATCH | `/api/appointments/:id/cancel` | Patient owner | Cancel an allowed appointment |
-| GET | `/api/appointments/assigned` | Verified doctor | List assigned appointments |
-| PATCH | `/api/appointments/:id/{accept,reject,complete}` | Assigned doctor | Explicit lifecycle action |
-| POST | `/api/webhooks/stripe` | Stripe signature | Authoritative payment result |
-| GET | `/api/payments/mine` | Patient | Own payment history |
-| POST/PATCH/DELETE | `/api/reviews/...` | Patient owner | Manage eligible reviews |
-| PUT | `/api/prescriptions` | Assigned doctor | Create/update completed-visit prescription |
-| GET | `/api/prescriptions/mine` | Patient | Own prescriptions |
-| GET/POST/DELETE | `/api/favorites/...` | Patient | Manage favorite verified doctors |
-| POST | `/api/contact` | Public, limited | Submit a validated contact message |
-| GET | `/api/analytics/public` | Public | Platform statistics |
-| GET | `/api/analytics/patient` | Patient | Patient dashboard |
-| GET | `/api/analytics/doctor` | Verified doctor | Doctor dashboard |
-| GET | `/api/analytics/admin` | Admin | Chart-ready administrative analytics |
-| GET/PATCH/DELETE | `/api/admin/users/...` | Admin | User administration |
-| GET/PATCH | `/api/admin/doctors/...` | Admin | Doctor verification workflow |
-| GET | `/api/admin/{appointments,payments}` | Admin | Paginated monitoring |
-| POST | `/api/cron/appointments` | Cron secret | Send tomorrow's reminders |
-| GET | `/api/health` | Public | Safe API/database health |
+| Method                | URL                                                            | Access           | Purpose                                                                  |
+| --------------------- | -------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------ |
+| ALL                   | `/api/auth/*`                                                  | Public/session   | Better Auth registration, login, Google, logout, session, token and JWKS |
+| POST                  | `/api/users/onboarding`                                        | Auth session     | Assign trusted patient/doctor application role                           |
+| GET/PATCH             | `/api/users/me`                                                | Active user      | Read/update own profile                                                  |
+| GET                   | `/api/doctors`                                                 | Public           | Search verified doctors with sorting/pagination                          |
+| GET                   | `/api/doctors/:id`                                             | Public           | Safe profile and public reviews                                          |
+| GET/PATCH             | `/api/doctors/me/profile`                                      | Doctor           | Manage own profile                                                       |
+| GET/POST/PATCH/DELETE | `/api/schedules/...`                                           | Doctor           | Manage own schedules                                                     |
+| GET                   | `/api/schedules/doctor/:doctorId/availability?date=YYYY-MM-DD` | Public           | Server-authoritative open slots                                          |
+| POST                  | `/api/appointments`                                            | Patient          | Reserve slot and create PaymentIntent                                    |
+| GET                   | `/api/appointments/mine`                                       | Patient          | List own appointments                                                    |
+| PATCH                 | `/api/appointments/:id/reschedule`                             | Patient owner    | Reschedule an allowed appointment                                        |
+| PATCH                 | `/api/appointments/:id/cancel`                                 | Patient owner    | Cancel an allowed appointment                                            |
+| GET                   | `/api/appointments/assigned`                                   | Verified doctor  | List assigned appointments                                               |
+| PATCH                 | `/api/appointments/:id/{accept,reject,complete}`               | Assigned doctor  | Explicit lifecycle action                                                |
+| POST                  | `/api/webhooks/stripe`                                         | Stripe signature | Authoritative payment result                                             |
+| GET                   | `/api/payments/mine`                                           | Patient          | Own payment history                                                      |
+| POST/PATCH/DELETE     | `/api/reviews/...`                                             | Patient owner    | Manage eligible reviews                                                  |
+| PUT                   | `/api/prescriptions`                                           | Assigned doctor  | Create/update completed-visit prescription                               |
+| GET                   | `/api/prescriptions/mine`                                      | Patient          | Own prescriptions                                                        |
+| GET/POST/DELETE       | `/api/favorites/...`                                           | Patient          | Manage favorite verified doctors                                         |
+| POST                  | `/api/contact`                                                 | Public, limited  | Submit a validated contact message                                       |
+| GET                   | `/api/analytics/public`                                        | Public           | Platform statistics                                                      |
+| GET                   | `/api/analytics/patient`                                       | Patient          | Patient dashboard                                                        |
+| GET                   | `/api/analytics/doctor`                                        | Verified doctor  | Doctor dashboard                                                         |
+| GET                   | `/api/analytics/admin`                                         | Admin            | Chart-ready administrative analytics                                     |
+| GET/PATCH/DELETE      | `/api/admin/users/...`                                         | Admin            | User administration                                                      |
+| GET/PATCH             | `/api/admin/doctors/...`                                       | Admin            | Doctor verification workflow                                             |
+| GET                   | `/api/admin/{appointments,payments}`                           | Admin            | Paginated monitoring                                                     |
+| POST                  | `/api/cron/appointments`                                       | Cron secret      | Send tomorrow's reminders                                                |
+| GET                   | `/api/health`                                                  | Public           | Safe API/database health                                                 |
 
 ## Client repository
 
