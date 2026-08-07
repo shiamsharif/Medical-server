@@ -3,7 +3,11 @@ import { conflict } from "../../errors/app-error.js";
 
 const transitions: Readonly<Record<AppointmentStatus, readonly AppointmentStatus[]>> = {
   [APPOINTMENT_STATUS.PAYMENT_PENDING]: [APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.CANCELLED],
-  [APPOINTMENT_STATUS.PENDING]: [APPOINTMENT_STATUS.ACCEPTED, APPOINTMENT_STATUS.REJECTED, APPOINTMENT_STATUS.CANCELLED],
+  [APPOINTMENT_STATUS.PENDING]: [
+    APPOINTMENT_STATUS.ACCEPTED,
+    APPOINTMENT_STATUS.REJECTED,
+    APPOINTMENT_STATUS.CANCELLED,
+  ],
   [APPOINTMENT_STATUS.ACCEPTED]: [APPOINTMENT_STATUS.COMPLETED, APPOINTMENT_STATUS.CANCELLED],
   [APPOINTMENT_STATUS.REJECTED]: [],
   [APPOINTMENT_STATUS.CANCELLED]: [],
@@ -12,7 +16,10 @@ const transitions: Readonly<Record<AppointmentStatus, readonly AppointmentStatus
 
 export function assertAppointmentTransition(from: AppointmentStatus, to: AppointmentStatus): void {
   if (!transitions[from].includes(to)) {
-    throw conflict(`Appointment cannot transition from ${from} to ${to}`, "INVALID_APPOINTMENT_TRANSITION");
+    throw conflict(
+      `Appointment cannot transition from ${from} to ${to}`,
+      "INVALID_APPOINTMENT_TRANSITION",
+    );
   }
 }
 

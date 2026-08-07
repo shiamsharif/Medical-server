@@ -11,12 +11,25 @@ export const paginationSchema = z.object({
 });
 
 export function toObjectId(value: string | string[]): ObjectId {
-  const normalized = Array.isArray(value) ? value[0] ?? "" : value;
-  if (!ObjectId.isValid(normalized)) throw badRequest("Invalid resource identifier", "INVALID_OBJECT_ID");
+  const normalized = Array.isArray(value) ? (value[0] ?? "") : value;
+  if (!ObjectId.isValid(normalized)) {
+    throw badRequest("Invalid resource identifier", "INVALID_OBJECT_ID");
+  }
   return new ObjectId(normalized);
 }
 
 export function paginationMeta(page: number, limit: number, total: number) {
   const totalPages = Math.ceil(total / limit);
-  return { page, limit, total, totalPages, hasNextPage: page < totalPages, hasPreviousPage: page > 1 };
+  return {
+    page,
+    limit,
+    total,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1,
+  };
+}
+
+export function paginationOffset(page: number, limit: number): number {
+  return (page - 1) * limit;
 }

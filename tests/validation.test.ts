@@ -14,7 +14,12 @@ describe("request utilities", () => {
 
   it("returns stable pagination metadata", () => {
     expect(paginationMeta(2, 10, 25)).toEqual({
-      page: 2, limit: 10, total: 25, totalPages: 3, hasNextPage: true, hasPreviousPage: true,
+      page: 2,
+      limit: 10,
+      total: 25,
+      totalPages: 3,
+      hasNextPage: true,
+      hasPreviousPage: true,
     });
   });
 });
