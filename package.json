@@ -1,14 +1,44 @@
 {
   "name": "medicare-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Production API for MediCare Connect",
+  "type": "module",
+  "main": "dist/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "lint": "eslint src tests --max-warnings=0",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "bootstrap:admin": "tsx src/scripts/bootstrap-admin.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.2.1"
+    "better-auth": "^1.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "jose": "^6.1.0",
+    "mongodb": "^7.0.0",
+    "pino": "^10.1.0",
+    "pino-http": "^11.0.0",
+    "resend": "^6.9.1",
+    "stripe": "^20.0.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.1",
+    "eslint": "^9.39.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.1",
+    "vitest": "^4.0.15"
   }
 }
