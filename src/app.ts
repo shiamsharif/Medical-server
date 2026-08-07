@@ -27,11 +27,27 @@ export const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(helmet());
-app.use(cors({ origin: env.CLIENT_URL, credentials: true, methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] }));
+app.use(
+  cors({
+    origin: env.CLIENT_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  }),
+);
 app.use(pinoHttp({ logger }));
 
-const generalLimiter = rateLimit({ windowMs: 15 * 60_000, limit: 500, standardHeaders: "draft-8", legacyHeaders: false });
-const sensitiveLimiter = rateLimit({ windowMs: 15 * 60_000, limit: 30, standardHeaders: "draft-8", legacyHeaders: false });
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  limit: 500,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+});
+const sensitiveLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  limit: 30,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+});
 app.use(generalLimiter);
 
 // Both handlers must run before JSON parsing: Better Auth owns its body and Stripe verifies raw bytes.
@@ -40,10 +56,20 @@ app.use("/api/webhooks/stripe", stripeWebhookRouter);
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
-app.get("/api/health", asyncHandler(async (_request, response) => {
-  const healthy = await isDatabaseHealthy();
-  response.status(healthy ? 200 : 503).json({ success: healthy, data: { status: healthy ? "healthy" : "unhealthy", database: healthy ? "connected" : "disconnected", timestamp: new Date().toISOString() } });
-}));
+app.get(
+  "/api/health",
+  asyncHandler(async (_request, response) => {
+    const healthy = await isDatabaseHealthy();
+    response.status(healthy ? 200 : 503).json({
+      success: healthy,
+      data: {
+        status: healthy ? "healthy" : "unhealthy",
+        database: healthy ? "connected" : "disconnected",
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }),
+);
 app.use("/api/users", usersRouter);
 app.use("/api/doctors", doctorsRouter);
 app.use("/api/schedules", schedulesRouter);

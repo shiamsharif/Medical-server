@@ -28,12 +28,20 @@ async function resolveAuthUserId(request: Request): Promise<string | undefined> 
   return session?.user.id;
 }
 
-export async function authenticate(request: Request, _response: Response, next: NextFunction): Promise<void> {
+export async function authenticate(
+  request: Request,
+  _response: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const authUserId = await resolveAuthUserId(request);
-    if (!authUserId) throw unauthorized();
+    if (!authUserId) {
+      throw unauthorized();
+    }
     const user = await getDatabase().collection<AppUser>("app_users").findOne({ authUserId });
-    if (!user?._id) throw unauthorized("Complete account onboarding before accessing private APIs");
+    if (!user?._id) {
+      throw unauthorized("Complete account onboarding before accessing private APIs");
+    }
     request.principal = {
       authUserId,
       appUserId: user._id,
@@ -43,18 +51,26 @@ export async function authenticate(request: Request, _response: Response, next: 
     };
     next();
   } catch (error) {
-    next(error instanceof Error && error.name === "AppError" ? error : unauthorized("Invalid or expired authentication"));
+    next(
+      error instanceof Error && error.name === "AppError"
+        ? error
+        : unauthorized("Invalid or expired authentication"),
+    );
   }
 }
 
 export function requireRole(...roles: UserRole[]) {
   return (request: Request, _response: Response, next: NextFunction): void => {
-    if (!request.principal || !roles.includes(request.principal.role)) return next(forbidden());
+    if (!request.principal || !roles.includes(request.principal.role)) {
+      return next(forbidden());
+    }
     next();
   };
 }
 
 export function requireActiveUser(request: Request, _response: Response, next: NextFunction): void {
-  if (request.principal?.status !== USER_STATUS.ACTIVE) return next(forbidden("This account is suspended"));
+  if (request.principal?.status !== USER_STATUS.ACTIVE) {
+    return next(forbidden("This account is suspended"));
+  }
   next();
 }
