@@ -1,6 +1,6 @@
 import type { Server } from "node:http";
-import { connectDatabase, closeDatabase } from "./config/database.js";
-import { ensureIndexes } from "./config/indexes.js";
+import app from "./app.js";
+import { closeDatabase, initializeDatabase } from "./config/database.js";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
 
@@ -25,10 +25,7 @@ async function closeHttpServer(): Promise<void> {
 }
 
 async function start(): Promise<void> {
-  const database = await connectDatabase();
-  await ensureIndexes(database);
-  // Importing after the connection ensures Better Auth receives the same initialized MongoDB instance.
-  const { app } = await import("./app.js");
+  await initializeDatabase();
   server = app.listen(env.PORT, () =>
     logger.info({ port: env.PORT }, "MediCare Connect API started"),
   );
@@ -47,18 +44,22 @@ async function shutdown(signal: string): Promise<void> {
   logger.info("Shutdown complete");
 }
 
-for (const signal of ["SIGINT", "SIGTERM"] as const) {
-  process.on(signal, () => {
-    void shutdown(signal)
-      .then(() => process.exit(0))
-      .catch((error: unknown) => {
-        logger.error({ err: error }, "Shutdown failed");
-        process.exit(1);
-      });
+export default app;
+
+if (!process.env.VERCEL) {
+  for (const signal of ["SIGINT", "SIGTERM"] as const) {
+    process.on(signal, () => {
+      void shutdown(signal)
+        .then(() => process.exit(0))
+        .catch((error: unknown) => {
+          logger.error({ err: error }, "Shutdown failed");
+          process.exit(1);
+        });
+    });
+  }
+
+  start().catch((error: unknown) => {
+    logger.fatal({ err: error }, "Application startup failed");
+    void closeDatabase().finally(() => process.exit(1));
   });
 }
-
-start().catch((error: unknown) => {
-  logger.fatal({ err: error }, "Application startup failed");
-  void closeDatabase().finally(() => process.exit(1));
-});

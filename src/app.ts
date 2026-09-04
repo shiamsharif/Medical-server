@@ -21,8 +21,9 @@ import { contactRouter } from "./modules/contact/contact.routes.js";
 import { analyticsRouter } from "./modules/analytics/analytics.routes.js";
 import { adminRouter } from "./modules/admin/admin.routes.js";
 import { remindersRouter } from "./modules/reminders/reminders.routes.js";
-import { isDatabaseHealthy } from "./config/database.js";
+import { initializeDatabase, isDatabaseHealthy } from "./config/database.js";
 import { asyncHandler } from "./utils/async-handler.js";
+import { AppError } from "./errors/app-error.js";
 
 const require = createRequire(import.meta.url);
 const cors = require("cors") as (options?: CorsOptions) => RequestHandler;
@@ -40,6 +41,17 @@ app.use(
   }),
 );
 app.use(pinoHttp({ logger }));
+app.use(
+  asyncHandler(async (_request, _response, next) => {
+    try {
+      await initializeDatabase();
+    } catch (error) {
+      logger.error({ err: error }, "Database initialization failed");
+      throw new AppError(503, "Database is unavailable", "DATABASE_UNAVAILABLE");
+    }
+    next();
+  }),
+);
 
 const generalLimiter = rateLimit({
   windowMs: 15 * 60_000,
@@ -61,6 +73,16 @@ app.use("/api/webhooks/stripe", stripeWebhookRouter);
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
+app.get("/", (_request, response) => {
+  response.json({
+    success: true,
+    data: {
+      name: "MediCare Connect API",
+      status: "running",
+      health: "/api/health",
+    },
+  });
+});
 app.get(
   "/api/health",
   asyncHandler(async (_request, response) => {
@@ -89,3 +111,5 @@ app.use("/api/admin", sensitiveLimiter, adminRouter);
 app.use("/api/cron", sensitiveLimiter, remindersRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+export default app;
