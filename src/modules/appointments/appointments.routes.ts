@@ -108,6 +108,8 @@ appointmentsRouter.post(
       throw notFound("Verified doctor");
     }
     await verifyScheduledSlot(doctorId, request.body.appointmentDate, request.body.appointmentTime);
+    // Validate the payment integration before reserving a unique appointment slot.
+    const stripe = new Stripe(requireIntegration("STRIPE_SECRET_KEY"));
     const now = new Date();
     const appointment: Appointment = {
       patientId: request.principal!.appUserId,
@@ -135,12 +137,11 @@ appointmentsRouter.post(
     }
 
     try {
-      const stripe = new Stripe(requireIntegration("STRIPE_SECRET_KEY"));
       // Browser-provided amounts are ignored; the persisted doctor fee is the authoritative charge source.
       const intent = await stripe.paymentIntents.create(
         {
           amount: consultationFeeInMinorUnits(doctor.consultationFee),
-          currency: "usd",
+          currency: "bdt",
           metadata: {
             appointmentId: appointmentId.toHexString(),
             patientId: request.principal!.appUserId.toHexString(),

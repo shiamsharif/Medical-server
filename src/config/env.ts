@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { z } from "zod";
+import { AppError } from "../errors/app-error.js";
 
 const optionalIntegration = z.string().trim().min(1).optional();
 const schema = z
@@ -44,7 +45,11 @@ export const env = result.data;
 export function requireIntegration(name: keyof typeof env): string {
   const value = env[name];
   if (typeof value !== "string" || value.length === 0) {
-    throw new Error(`${name} is required for this integration`);
+    throw new AppError(
+      503,
+      `${name} is not configured on the server`,
+      "INTEGRATION_NOT_CONFIGURED",
+    );
   }
   return value;
 }

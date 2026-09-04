@@ -9,7 +9,7 @@ import { conflict, notFound } from "../../errors/app-error.js";
 import { validateBody } from "../../middleware/validate.js";
 import { asyncHandler } from "../../utils/async-handler.js";
 import { success } from "../../utils/response.js";
-import { toObjectId } from "../../utils/validation.js";
+import { objectIdSchema, toObjectId } from "../../utils/validation.js";
 
 const medicationSchema = z.object({
   name: z.string().trim().min(1).max(150),
@@ -19,7 +19,7 @@ const medicationSchema = z.object({
   instructions: z.string().trim().max(500).optional(),
 });
 const schema = z.object({
-  appointmentId: z.string(),
+  appointmentId: objectIdSchema,
   diagnosis: z.string().trim().min(2).max(2000),
   medications: z.array(medicationSchema).min(1).max(50),
   notes: z.string().trim().max(3000).optional(),

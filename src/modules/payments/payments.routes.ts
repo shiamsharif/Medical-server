@@ -117,6 +117,75 @@ paymentsRouter.get(
   }),
 );
 
+paymentsRouter.post(
+  "/:appointmentId/sync",
+  authenticate,
+  requireActiveUser,
+  requireRole(USER_ROLE.PATIENT),
+  asyncHandler(async (request, response) => {
+    const appointmentId = toObjectId(request.params.appointmentId ?? "");
+    const payment = await getDatabase().collection<Payment>("payments").findOne({
+      appointmentId,
+      patientId: request.principal!.appUserId,
+    });
+    if (!payment) {
+      throw notFound("Payment");
+    }
+
+    const stripe = new Stripe(requireIntegration("STRIPE_SECRET_KEY"));
+    // The browser cannot mark a payment paid. Always retrieve its authoritative state from Stripe.
+    const intent = await stripe.paymentIntents.retrieve(payment.stripePaymentIntentId);
+    if (intent.metadata.appointmentId !== appointmentId.toHexString()) {
+      throw badRequest("Payment does not match this appointment", "PAYMENT_MISMATCH");
+    }
+
+    if (intent.status === "succeeded") {
+      const now = new Date();
+      const chargeId =
+        typeof intent.latest_charge === "string" ? intent.latest_charge : intent.latest_charge?.id;
+      await getDatabase()
+        .collection<Payment>("payments")
+        .updateOne(
+          { _id: payment._id },
+          {
+            $set: {
+              paymentStatus: PAYMENT_STATUS.PAID,
+              paymentDate: payment.paymentDate ?? now,
+              ...(chargeId ? { transactionId: chargeId } : {}),
+              updatedAt: now,
+            },
+          },
+        );
+      await getDatabase()
+        .collection<Appointment>("appointments")
+        .updateOne(
+          { _id: appointmentId, appointmentStatus: APPOINTMENT_STATUS.PAYMENT_PENDING },
+          {
+            $set: {
+              paymentStatus: PAYMENT_STATUS.PAID,
+              appointmentStatus: APPOINTMENT_STATUS.PENDING,
+              updatedAt: now,
+            },
+          },
+        );
+    }
+
+    const appointment = await getDatabase()
+      .collection<Appointment>("appointments")
+      .findOne({ _id: appointmentId, patientId: request.principal!.appUserId });
+    if (!appointment) {
+      throw notFound("Appointment");
+    }
+    success(response, {
+      stripeStatus: intent.status,
+      paymentStatus:
+        intent.status === "succeeded" ? PAYMENT_STATUS.PAID : appointment.paymentStatus,
+      appointmentStatus:
+        intent.status === "succeeded" ? APPOINTMENT_STATUS.PENDING : appointment.appointmentStatus,
+    });
+  }),
+);
+
 paymentsRouter.get(
   "/:appointmentId",
   authenticate,

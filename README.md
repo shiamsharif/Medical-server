@@ -85,6 +85,28 @@ npm run dev
 
 Populate `.env` with a MongoDB connection, a 32+ character Better Auth secret, Stripe test keys/webhook secret, and any integrations being exercised. `.env` is ignored and must never be committed. The server validates mandatory configuration on startup and uses `medicare_connect` by default.
 
+### Stripe sandbox setup
+
+Use one Stripe sandbox for both applications. Copy its publishable key (`pk_test_...`) to the client `.env`, and its secret key (`sk_test_...`) to the server `.env`:
+
+```env
+# medicare-client/.env
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_replace_me
+
+# medicare-server/.env
+STRIPE_SECRET_KEY=sk_test_replace_me
+STRIPE_WEBHOOK_SECRET=whsec_replace_me
+```
+
+The publishable and secret keys must belong to the same sandbox. Keep `sk_test_...` and `whsec_...` server-only. For local webhook delivery, run the Stripe CLI in a separate terminal:
+
+```bash
+stripe login
+stripe listen --events payment_intent.succeeded,payment_intent.payment_failed --forward-to localhost:5000/api/webhooks/stripe
+```
+
+Copy the `whsec_...` signing secret printed by `stripe listen` into the server `.env`, then restart the API. In sandbox mode, a successful demo payment uses card `4242 4242 4242 4242`, any future expiration date, any three-digit CVC, and any postal code. The application presents and charges consultation fees in BDT.
+
 Run quality checks:
 
 ```bash
@@ -125,6 +147,7 @@ Set `CLIENT_URL`, `SERVER_URL`, and `BETTER_AUTH_URL` to their public HTTPS orig
 | PATCH                 | `/api/appointments/:id/{accept,reject,complete}`               | Assigned doctor  | Explicit lifecycle action                                                |
 | POST                  | `/api/webhooks/stripe`                                         | Stripe signature | Authoritative payment result                                             |
 | GET                   | `/api/payments/mine`                                           | Patient          | Own payment history                                                      |
+| POST                  | `/api/payments/:appointmentId/sync`                            | Patient owner    | Reconcile an immediate result directly with Stripe                       |
 | POST/PATCH/DELETE     | `/api/reviews/...`                                             | Patient owner    | Manage eligible reviews                                                  |
 | PUT                   | `/api/prescriptions`                                           | Assigned doctor  | Create/update completed-visit prescription                               |
 | GET                   | `/api/prescriptions/mine`                                      | Patient          | Own prescriptions                                                        |
