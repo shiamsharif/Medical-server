@@ -2,26 +2,36 @@ import "dotenv/config";
 import { z } from "zod";
 
 const optionalIntegration = z.string().trim().min(1).optional();
-const schema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  PORT: z.coerce.number().int().min(1).max(65_535).default(5000),
-  CLIENT_URL: z.url(),
-  SERVER_URL: z.url(),
-  MONGODB_URI: z.string().min(1),
-  MONGODB_DATABASE: z.string().min(1).default("medicare_connect"),
-  BETTER_AUTH_SECRET: z.string().min(32),
-  BETTER_AUTH_URL: z.url(),
-  GOOGLE_CLIENT_ID: optionalIntegration,
-  GOOGLE_CLIENT_SECRET: optionalIntegration,
-  STRIPE_SECRET_KEY: optionalIntegration,
-  STRIPE_WEBHOOK_SECRET: optionalIntegration,
-  EMAIL_FROM: optionalIntegration,
-  RESEND_API_KEY: optionalIntegration,
-  ADMIN_NAME: optionalIntegration,
-  ADMIN_EMAIL: z.email().optional(),
-  ADMIN_PASSWORD: z.string().min(12).optional(),
-  CRON_SECRET: optionalIntegration,
-});
+const schema = z
+  .object({
+    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    PORT: z.coerce.number().int().min(1).max(65_535).default(5000),
+    CLIENT_URL: z.url(),
+    SERVER_URL: z.url(),
+    MONGODB_URI: z.string().min(1),
+    MONGODB_DATABASE: z.string().min(1).default("medicare_connect"),
+    BETTER_AUTH_SECRET: z.string().min(32),
+    BETTER_AUTH_URL: z.url(),
+    GOOGLE_CLIENT_ID: optionalIntegration,
+    GOOGLE_CLIENT_SECRET: optionalIntegration,
+    STRIPE_SECRET_KEY: optionalIntegration,
+    STRIPE_WEBHOOK_SECRET: optionalIntegration,
+    EMAIL_FROM: optionalIntegration,
+    RESEND_API_KEY: optionalIntegration,
+    ADMIN_NAME: optionalIntegration,
+    ADMIN_EMAIL: z.email().optional(),
+    ADMIN_PASSWORD: z.string().min(12).optional(),
+    CRON_SECRET: optionalIntegration,
+  })
+  .superRefine((value, context) => {
+    if (Boolean(value.GOOGLE_CLIENT_ID) !== Boolean(value.GOOGLE_CLIENT_SECRET)) {
+      context.addIssue({
+        code: "custom",
+        path: [value.GOOGLE_CLIENT_ID ? "GOOGLE_CLIENT_SECRET" : "GOOGLE_CLIENT_ID"],
+        message: "Google OAuth requires both the client ID and client secret",
+      });
+    }
+  });
 
 const result = schema.safeParse(process.env);
 if (!result.success) {

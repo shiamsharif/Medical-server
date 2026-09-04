@@ -40,6 +40,15 @@ Browser clients normally use Better Auth's secure session cookie. A signed JWT i
 
 After registration, call `POST /api/users/onboarding` with the authenticated account's email and either `patient` or `doctor`. Public onboarding cannot assign `admin`. Doctor profiles begin as `pending`.
 
+### Google OAuth setup
+
+Google sign-in is enabled only when both `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are present. Create a Web application OAuth client in Google Cloud, then configure:
+
+- Authorized JavaScript origin: `http://localhost:3000`
+- Authorized redirect URI: `http://localhost:5000/api/auth/callback/google`
+
+Add the two credentials to the server `.env` and restart the API. For deployment, replace the localhost origins with the public client origin and `${BETTER_AUTH_URL}/api/auth/callback/google`. The OAuth callback returns to the client `/auth/complete` page, which creates or verifies the application onboarding record before opening the dashboard.
+
 ## Authorization model
 
 - Patients control only their own appointments, payments, reviews, prescriptions, and favorites.

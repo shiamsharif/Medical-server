@@ -38,17 +38,29 @@ usersRouter.post(
     if (session.user.email.toLowerCase() !== request.body.email.toLowerCase()) {
       throw conflict("Email must match the authenticated account", "IDENTITY_MISMATCH");
     }
+    const collection = getDatabase().collection<AppUser>("app_users");
+    const existing = await collection.findOne({ authUserId: session.user.id });
+    if (existing) {
+      success(response, existing, "Account onboarding already completed");
+      return;
+    }
+
+    const emailOwner = await collection.findOne({ email: session.user.email.toLowerCase() });
+    if (emailOwner) {
+      throw conflict("This email is already linked to another account", "EMAIL_ALREADY_LINKED");
+    }
+
     const now = new Date();
     const user: AppUser = {
       authUserId: session.user.id,
-      name: request.body.name,
+      name: request.body.name.trim(),
       email: session.user.email.toLowerCase(),
       role: request.body.role,
       status: USER_STATUS.ACTIVE,
       createdAt: now,
       updatedAt: now,
     };
-    const result = await getDatabase().collection<AppUser>("app_users").insertOne(user);
+    const result = await collection.insertOne(user);
     if (user.role === USER_ROLE.DOCTOR) {
       const doctor: Doctor = {
         userId: result.insertedId,
