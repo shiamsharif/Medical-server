@@ -45,9 +45,9 @@ After registration, call `POST /api/users/onboarding` with the authenticated acc
 Google sign-in is enabled only when both `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are present. Create a Web application OAuth client in Google Cloud, then configure:
 
 - Authorized JavaScript origin: `http://localhost:3000`
-- Authorized redirect URI: `http://localhost:5000/api/auth/callback/google`
+- Authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
 
-Add the two credentials to the server `.env` and restart the API. For deployment, replace the localhost origins with the public client origin and `${BETTER_AUTH_URL}/api/auth/callback/google`. The OAuth callback returns to the client `/auth/complete` page, which creates or verifies the application onboarding record before opening the dashboard.
+Add the two credentials to the server `.env` and restart the API. The frontend proxies `/api/*` to the API server so authentication cookies remain first-party; therefore `BETTER_AUTH_URL` must be the frontend origin. For deployment, replace localhost with the public frontend origin and register `${BETTER_AUTH_URL}/api/auth/callback/google`. The OAuth callback returns to the client `/auth/complete` page, which creates or verifies the application onboarding record before opening the dashboard.
 
 ## Authorization model
 
@@ -125,7 +125,7 @@ The script uses `ADMIN_NAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` and is idempot
 
 ## Deployment
 
-Set `CLIENT_URL`, `SERVER_URL`, and `BETTER_AUTH_URL` to their public HTTPS origins. CORS and Better Auth trusted origins allow only the configured client. Configure Stripe to deliver events to `/api/webhooks/stripe`, configure the external daily scheduler, and ensure MongoDB supports the declared indexes. The process handles `SIGINT`/`SIGTERM`, closes HTTP and MongoDB cleanly, and exposes `GET /api/health` for readiness checks.
+Set `CLIENT_URL` and `BETTER_AUTH_URL` to the frontend HTTPS origin, and set `SERVER_URL` to the API HTTPS origin. The client project's `API_PROXY_TARGET` must point to that API origin. CORS and Better Auth trusted origins allow only the configured client. Configure Stripe to deliver events directly to the API origin at `/api/webhooks/stripe`, configure the external daily scheduler, and ensure MongoDB supports the declared indexes. The process handles `SIGINT`/`SIGTERM`, closes HTTP and MongoDB cleanly, and exposes `GET /api/health` for readiness checks.
 
 ## API endpoints
 
