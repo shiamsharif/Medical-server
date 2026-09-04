@@ -7,6 +7,8 @@ export const logger = pino({
     paths: [
       "req.headers.authorization",
       "req.headers.cookie",
+      "res.headers['set-auth-jwt']",
+      "res.headers['set-cookie']",
       "password",
       "token",
       "secret",

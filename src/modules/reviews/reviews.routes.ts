@@ -20,6 +20,11 @@ const updateSchema = createSchema
   .pick({ rating: true, reviewText: true })
   .partial()
   .refine((value) => Object.keys(value).length > 0);
+const publicQuerySchema = z.object({
+  doctorId: z.string().optional(),
+  featured: z.enum(["true", "false"]).optional(),
+  limit: z.coerce.number().int().min(1).max(20).default(10),
+});
 
 async function recalculateRating(doctorId: NonNullable<Review["doctorId"]>): Promise<void> {
   const [rating] = await getDatabase()
@@ -45,6 +50,38 @@ async function recalculateRating(doctorId: NonNullable<Review["doctorId"]>): Pro
 
 export const reviewsRouter = Router();
 const patientOnly = [authenticate, requireActiveUser, requireRole(USER_ROLE.PATIENT)] as const;
+
+reviewsRouter.get(
+  "/",
+  asyncHandler(async (request, response) => {
+    const query = publicQuerySchema.parse(request.query);
+    const match = query.doctorId ? { doctorId: toObjectId(query.doctorId) } : {};
+    const data = await getDatabase()
+      .collection<Review>("reviews")
+      .aggregate([
+        { $match: match },
+        { $sort: { createdAt: -1 } },
+        { $limit: query.limit },
+        { $lookup: { from: "app_users", localField: "patientId", foreignField: "_id", as: "patient" } },
+        { $lookup: { from: "doctors", localField: "doctorId", foreignField: "_id", as: "doctor" } },
+        { $set: { patient: { $first: "$patient" }, doctor: { $first: "$doctor" } } },
+        {
+          $project: {
+            _id: 0,
+            id: { $toString: "$_id" },
+            patientName: { $ifNull: ["$patient.name", "MediCare patient"] },
+            patientAvatar: "$patient.image",
+            doctorName: { $ifNull: ["$doctor.doctorName", "MediCare doctor"] },
+            rating: 1,
+            comment: "$reviewText",
+            createdAt: 1,
+          },
+        },
+      ])
+      .toArray();
+    success(response, data);
+  }),
+);
 
 reviewsRouter.get(
   "/mine",

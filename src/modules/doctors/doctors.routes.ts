@@ -15,12 +15,18 @@ import {
 import { success } from "../../utils/response.js";
 import { validateBody } from "../../middleware/validate.js";
 import { notFound } from "../../errors/app-error.js";
+import { currentIsoDate, weekdayForIsoDate } from "../../utils/date-time.js";
 
 const searchSchema = paginationSchema.extend({
   search: z.string().trim().max(100).optional(),
   specialization: z.string().trim().max(100).optional(),
   hospital: z.string().trim().max(150).optional(),
+  availability: z.enum(["today", "week"]).optional(),
+  minFee: z.coerce.number().min(0).optional(),
+  maxFee: z.coerce.number().min(0).optional(),
   sort: z.enum(["fee_asc", "fee_desc", "experience_desc", "rating_desc"]).default("rating_desc"),
+}).refine((value) => value.minFee === undefined || value.maxFee === undefined || value.minFee <= value.maxFee, {
+  message: "minFee must not exceed maxFee",
 });
 const updateSchema = z
   .object({
@@ -65,6 +71,24 @@ doctorsRouter.get(
       filter.hospitalName = {
         $regex: query.hospital.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
         $options: "i",
+      };
+    }
+    if (query.minFee !== undefined || query.maxFee !== undefined) {
+      filter.consultationFee = {
+        ...(query.minFee !== undefined ? { $gte: query.minFee } : {}),
+        ...(query.maxFee !== undefined ? { $lte: query.maxFee } : {}),
+      };
+    }
+    if (query.availability) {
+      const scheduleFilter: Filter<Schedule> = { active: true };
+      if (query.availability === "today") {
+        const today = currentIsoDate();
+        scheduleFilter.day = { $in: [today, weekdayForIsoDate(today)] };
+      }
+      filter._id = {
+        $in: await getDatabase()
+          .collection<Schedule>("schedules")
+          .distinct("doctorId", scheduleFilter),
       };
     }
     const collection = getDatabase().collection<Doctor>("doctors");

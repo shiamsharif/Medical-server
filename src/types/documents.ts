@@ -15,6 +15,8 @@ export interface AppUser {
   image?: string;
   phone?: string;
   gender?: string;
+  location?: string;
+  bloodGroup?: string;
   role: UserRole;
   status: UserStatus;
   createdAt: Date;
