@@ -1,7 +1,8 @@
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
+import { createRequire } from "node:module";
+import express, { type RequestHandler } from "express";
+import type { CorsOptions } from "cors";
+import type { HelmetOptions } from "helmet";
+import { rateLimit } from "express-rate-limit";
 import { pinoHttp } from "pino-http";
 import { toNodeHandler } from "better-auth/node";
 import { env } from "./config/env.js";
@@ -22,6 +23,10 @@ import { adminRouter } from "./modules/admin/admin.routes.js";
 import { remindersRouter } from "./modules/reminders/reminders.routes.js";
 import { isDatabaseHealthy } from "./config/database.js";
 import { asyncHandler } from "./utils/async-handler.js";
+
+const require = createRequire(import.meta.url);
+const cors = require("cors") as (options?: CorsOptions) => RequestHandler;
+const helmet = require("helmet") as (options?: Readonly<HelmetOptions>) => RequestHandler;
 
 export const app = express();
 app.disable("x-powered-by");
